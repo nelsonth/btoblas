@@ -8,10 +8,9 @@
 ###     model_off = xxx
 ### where xxx can be nothing or anything, it is discarded.
 
-model_off = 
 #ga_count = 100 
 #ga_popsize = 32
-#search = ga
+search = ga
 #ga_maxfuse = 
 delete_tmp = 
 test_param = 3000:3000:1
