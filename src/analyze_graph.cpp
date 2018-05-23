@@ -76,14 +76,14 @@ struct refine_outer {
 /////////////////////////////////////////// RETURN TYPE DEFINITIONS /////////////////////////////
 
 struct ret_nothing {
-	type operator()(vertex u, vector<vertex> &v, graph &g) {
+	type operator()(vertex u, vector<vertex> v, graph &g) {
 		type t(unknown,dim_info(),general);
 		return t;
 	}
 };
 
 struct ret_same {
-	type operator()(vertex u, vector<vertex> &v, graph &g) {
+	type operator()(vertex u, vector<vertex> v, graph &g) {
 		if (v.size() != 2)
 			std::cout << "ERROR: analyze_graph.cpp: ret_same struct: unexpected inv_adj size\n";
 		if (g.info(v[0]).t.k != g.info(v[1]).t.k) {
@@ -103,7 +103,7 @@ struct ret_same {
 };
 
 struct ret_trans {
-	type operator()(vertex u, vector<vertex> &v, graph &g) {
+	type operator()(vertex u, vector<vertex> v, graph &g) {
 		if (v.size() != 1)
 			std::cout << "ERROR: analyze_graph.cpp: ret_trans struct: unexpected inv_adj size\n";;
 		type t(g.info(v[0]).t);
@@ -122,7 +122,7 @@ struct ret_trans {
 };
 
 struct ret_same_one {
-	type operator()(vertex u, vector<vertex> &v, graph &g) {
+	type operator()(vertex u, vector<vertex> v, graph &g) {
 		if (v.size() != 1)
 			std::cout << "ERROR: analyze_graph.cpp: ret_same_one struct: unexpected inv_adg size\n";
 		return g.info(v[0]).t;
@@ -131,8 +131,8 @@ struct ret_same_one {
 
 type *ret_mult_r(type *l, type *r, type *u) {
 	// with partitioning and blocking it is possible to know much of the type
-	// but if anywhere in the type requires an outer product calculation the
-	// type is unknown and must be decided from uses of the result
+  // but if anywhere in the type requires an outer product calculation the
+  // type is unknown and must be decided from uses of the result
 	if (l->k == row && r->k == row) {
 		if (r->t == 0 || u->t == 0) {
 			std::cout << "ERROR: analyze_graph.cpp: ret_mult_r(): rr bad types\n";
@@ -150,9 +150,9 @@ type *ret_mult_r(type *l, type *r, type *u) {
 		}
 		else if (u->k == column) {
 			// if r is row<col<scl>>
-			// need col<row<scl>>
-			// where size and step of each are swapped.
-			// may need to do this recursively with partitioning.
+	  // need col<row<scl>>
+	// where size and step of each are swapped.
+  // may need to do this recursively with partitioning.
 			type *newr = new type(*r);
 			newr->k = column;
 			newr->t->k = row;
@@ -190,9 +190,9 @@ type *ret_mult_r(type *l, type *r, type *u) {
 		}
 		else if (u->k == row) {			
 			// if l is col<row<scl>>
-			// need row<col<scl>>
-			// where size and step of each are swapped.
-			// may need to do this recursively with partitioning.
+	  // need row<col<scl>>
+	// where size and step of each are swapped.
+  // may need to do this recursively with partitioning.
 			type *newl = new type(*l);
 			newl->k = row;
 			newl->t->k = column;
@@ -284,9 +284,9 @@ type *ret_mult_r(type *l, type *r, type *u) {
 }
 
 struct ret_mult {
-	type operator() (vertex u, vector<vertex> &v, graph &g) {
+	type operator() (vertex u, vector<vertex> v, graph &g) {
 		//std::ofstream out("lower96.dot");
-		//print_graph(out, g);
+	//print_graph(out, g);
 		if (v.size() != 2)
 			std::cout << "ERROR: analyze_graph.cpp: ret_mult struct: unexpected inv_adj size\n";
 		type *l = &(g.info(v[0]).t);
@@ -300,30 +300,28 @@ struct ret_mult {
 	}
 };
 
-struct ret_divide {
-	type operator() (vertex u, vector<vertex> &v, graph &g) {
-		if (v.size() != 2)
-			std::cout << "ERROR: analyze_graph.cpp: ret_divide struct: unexpected inv_adj size\n";
-		if (g.info(v[1]).t.k != scalar) {
-			std::cout << "WARNING: analyze_graph.cpp: ret_divide struct: unexpected types\n";
-		}
-		return g.info(v[0]).t;
+type ret_divide(vertex u, vector<vertex> v, graph &g) {
+	if (v.size() != 2)
+		std::cout << "ERROR: analyze_graph.cpp: ret_divide struct: unexpected inv_adj size\n";
+	if (g.info(v[1]).t.k != scalar) {
+		std::cout << "WARNING: analyze_graph.cpp: ret_divide struct: unexpected types\n";
 	}
-};
+	return g.info(v[0]).t;
+}
 
 /////////////////////////////////////////// END RETURN TYPE DEFS /////////////////////////////////
 
 ////////////////////////////////////////// PARAMETER ACCESS DEFINITIONS //////////////////////////
 
 struct param_nothing {
-	vector<param_access> operator() (vector<vertex>& v, vertex u, graph &g) {
+	vector<param_access> operator() (vector<vertex> v, vertex u, graph &g) {
 		vector<param_access> ret;
 		return ret;
 	}
 };
 
 struct param_two_once {
-	vector<param_access> operator() (vector<vertex>& v, vertex u, graph &g) {
+	vector<param_access> operator() (vector<vertex> v, vertex u, graph &g) {
 		vector<param_access> ret;
 		ret.push_back(once);
 		ret.push_back(once);
@@ -331,17 +329,15 @@ struct param_two_once {
 	}
 };
 
-struct param_divide {
-	vector<param_access> operator() (vector<vertex>& v, vertex u, graph &g) {
-		vector<param_access> ret;
-		ret.push_back(once);
-		ret.push_back(many);
-		return ret;
-	}
-};
+vector<param_access> param_divide(vector<vertex> v, vertex u, graph &g) {
+	vector<param_access> ret;
+	ret.push_back(once);
+	ret.push_back(many);
+	return ret;
+}
 
 struct param_trans {
-	vector<param_access> operator() (vector<vertex>& v, vertex u, graph &g) {
+	vector<param_access> operator() (vector<vertex> v, vertex u, graph &g) {
 		vector<param_access> ret;
 		ret.push_back(once);
 		return ret;
@@ -349,7 +345,7 @@ struct param_trans {
 };
 
 struct param_squareroot {
-	vector<param_access> operator() (vector<vertex>& v, vertex u, graph &g) {
+	vector<param_access> operator() (vector<vertex> v, vertex u, graph &g) {
 		vector<param_access> ret;
 		ret.push_back(once);
 		return ret;
@@ -357,7 +353,7 @@ struct param_squareroot {
 };
 
 struct param_scale {
-	vector<param_access> operator() (vector<vertex>& v, vertex u, graph &g) {
+	vector<param_access> operator() (vector<vertex> v, vertex u, graph &g) {
 		vector<param_access> ret;
 		if (v.size() != 2)
 			std::cout << "ERROR: analyze_graph.cpp: param_scale struct: unexpected inv_adj size\n";
@@ -379,7 +375,7 @@ struct param_scale {
 };
 
 struct param_cont_cont_stride_mult {
-	vector<param_access> operator()(vector<vertex>& v, vertex u, graph &g) {
+	vector<param_access> operator()(vector<vertex> v, vertex u, graph &g) {
 		vector<param_access> ret;
 		// l == r != u
 		if (v.size() != 2)
@@ -403,7 +399,7 @@ struct param_cont_cont_stride_mult {
 };
 
 struct param_cont_cont_mult {
-	vector<param_access> operator()(vector<vertex>& v, vertex u, graph &g) {
+	vector<param_access> operator()(vector<vertex> v, vertex u, graph &g) {
 		vector<param_access> ret;
 
 		if (v.size() != 2)
@@ -427,7 +423,7 @@ struct param_cont_cont_mult {
 };
 
 struct param_outer {
-	vector<param_access> operator() (vector<vertex>& v, vertex u, graph &g) {
+	vector<param_access> operator() (vector<vertex> v, vertex u, graph &g) {
 		vector<param_access> ret;
 		if (v.size() != 2)
 			std::cout << "ERROR: analyze_graph.cpp: param_scale struct: unexpected inv_adj size\n";
@@ -448,7 +444,7 @@ struct param_outer {
 };
 
 struct param_dot {
-	vector<param_access> operator() (vector<vertex>& v, vertex u, graph &g) {
+	vector<param_access> operator() (vector<vertex> v, vertex u, graph &g) {
 		vector<param_access> ret;
 
 		if (v.size() != 2)
@@ -589,14 +585,15 @@ void init_algos(std::vector<algo>& algos) {
 				refine_nothing(), true, constraint_true()));
 
 	// Division (21-23)
-	algos.push_back(algo(divide, ret_divide(), decouple, param_two_once(), type(scalar, dim_info(),any),
-				type(scalar, dim_info(),any), refine_nothing(), true, constraint_true()));
-	algos.push_back(algo(divide, ret_divide(), decouple, param_divide(), type(row, dim_info(),any),
-				type(scalar, dim_info(),any), refine_scalar_cont_div(&algos),
-				true, constraint_true()));
-	algos.push_back(algo(divide, ret_divide(), decouple, param_divide(), type(column, dim_info(),any),
-				type(scalar, dim_info(),any), refine_scalar_cont_div(&algos),
-				true, constraint_true()));
+	algos.push_back(algo(divide, ret_divide, decouple, param_two_once(),
+				type(scalar, dim_info(),any), type(scalar, dim_info(),any),
+				refine_nothing(), true, constraint_true()));
+	algos.push_back(algo(divide, ret_divide, decouple, param_divide,
+				type(row, dim_info(),any), type(scalar, dim_info(),any),
+				refine_scalar_cont_div(&algos), true, constraint_true()));
+	algos.push_back(algo(divide, ret_divide, decouple, param_divide,
+				type(column, dim_info(),any), type(scalar, dim_info(),any),
+				refine_scalar_cont_div(&algos), true, constraint_true()));
 }
 
 bool is_summation(vertex u, graph& g) {
@@ -646,15 +643,15 @@ std::vector<unsigned int> find_matches(vertex u, graph& g, vector<algo> const& a
 	for (unsigned int i = 0; i != algos.size(); ++i) {
 		if (algos[i].op == op && algos[i].param_types.size() == g.inv_adj(u).size()) {
 			//std::cout << "\t" << op << " : " << i << std::endl;
-			//std::cout << "\t" << g.info(g.inv_adj(u)[0]).t.k << std::endl;
-			//std::cout << "\t" << g.info(g.inv_adj(u)[1]).t.k << std::endl;
+	  //std::cout << "\t" << g.info(g.inv_adj(u)[0]).t.k << std::endl;
+	//std::cout << "\t" << g.info(g.inv_adj(u)[1]).t.k << std::endl;
 			bool all_match = true;
 			for (unsigned int j = 0; j != g.inv_adj(u).size(); ++j) {
 				all_match = all_match && types_match(algos[i].param_types[j], g.info(g.inv_adj(u)[j]).t);
 			}
 			if (all_match) {
 				//std::cout << "\t\t" << i << "\n";
-				//std::cout << u << "\n";
+		//std::cout << u << "\n";
 
 				type algo_ret_t = algos[i].return_type(u, g.inv_adj(u),g);
 
@@ -704,7 +701,7 @@ void assign_algorithms(vector<algo> const& algos, graph& g) {
 				//std::cout << u << "\t" << matches[0] << std::endl;
 				apply_match(matches[0], u, g, algos);
 				//std::ofstream out("lower.dot");
-				//print_graph(out, g); 
+		//print_graph(out, g); 
 			}
 			else if (matches.size() > 1) {
 
@@ -715,15 +712,15 @@ void assign_algorithms(vector<algo> const& algos, graph& g) {
 				}
 				std::cout << std::endl;
 				//std::ofstream out("lower.dot");
-				//print_graph(out, g);
+		//print_graph(out, g);
 
 				++ambigs;
 			}
 			//else { 
-			//std::cout << "--" << u << std::endl;
-			//std::ofstream out("lower.dot");
-			//print_graph(out, g);
-			//}
+	  //std::cout << "--" << u << std::endl;
+	//std::ofstream out("lower.dot");
+  //print_graph(out, g);
+  //}
 		}
 		//std::cout << ambigs << " ambiguous" << std::endl;
 	} while (ambigs != prev_ambigs);
@@ -817,22 +814,22 @@ void initial_lower(graph &g, vector<algo> const &algos, vector<rewrite_fun> cons
 	for (int i = 5; i != 30; ++i) {
 		//std::cerr << "lowering" << std::endl;
 
-		//#define DB
+	//#define DB
 #ifdef DB
 		{
-			std::ofstream out(string("lower" + boost::lexical_cast<string>(i) 
-						+ ".dot").c_str());
-			print_graph(out, g);
-		}
+		std::ofstream out(string("lower" + boost::lexical_cast<string>(i) 
+					+ ".dot").c_str());
+		print_graph(out, g);
+	}
 #endif
 		lower_graph(algos, g);
 		apply_rewrites(rewrites, g);
 #ifdef DB
 		{
-			std::ofstream out(string("rw" + boost::lexical_cast<string>(i) 
-						+ ".dot").c_str());
-			print_graph(out, g);
-		}
+		std::ofstream out(string("rw" + boost::lexical_cast<string>(i) 
+					+ ".dot").c_str());
+		print_graph(out, g);
+	}
 #endif
 	}
 }
@@ -847,17 +844,17 @@ void lower_graph(vector<algo> const& algos, graph& g) {
 			case squareroot:
 			case divide:
 			case multiply: {
-							   //std::cout << "lowering " << u << " " << g.info(u).label << std::endl;
-							   unsigned int i = g.info(u).algo;
-							   //std::cout << "\talgo " << i << "\tvertex " << u << std::endl;
-							   //std::ofstream out("lower.dot");
-							   //print_graph(out, g);
-							   assert(i < algos.size());
-							   algos[i].refiner(u, g);
-							   break;
-						   }
+						 //std::cout << "lowering " << u << " " << g.info(u).label << std::endl;
+						 unsigned int i = g.info(u).algo;
+						 //std::cout << "\talgo " << i << "\tvertex " << u << std::endl;
+			 //std::ofstream out("lower.dot");
+	   //print_graph(out, g);
+						 assert(i < algos.size());
+						 algos[i].refiner(u, g);
+						 break;
+					 }
 			default:
-						   break;
+					 break;
 		}
 	}
 }
@@ -980,8 +977,8 @@ bool refine_cont_cont::operator()(vertex v, graph& g) {
 		origVparent->vertices.push_back(v);
 
 	// remove followed by add here breaks the operand ordering
-	// for anything v used to be an operand of.  this cannot
-	// break that ordering.
+  // for anything v used to be an operand of.  this cannot
+  // break that ordering.
 	g.move_out_edges_to_new_vertex(newop_v, v);
 
 	g.remove_edges(left, newop_v);
@@ -998,7 +995,7 @@ bool refine_cont_cont::operator()(vertex v, graph& g) {
 
 	std::vector<unsigned int> matches = find_matches(newop_v, g, *algorithms);
 	//std::ofstream out("lower96.dot");
-	//print_graph(out, g);
+  //print_graph(out, g);
 	assert(matches.size() == 1);
 	apply_match(matches[0], newop_v, g, *algorithms);
 
@@ -1061,8 +1058,8 @@ bool refine_scalar_cont_mult::operator()(vertex v, graph& g) {
 		origVparent->vertices.push_back(v);
 
 	// remove followed by add here breaks the operand ordering
-	// for anything v used to be an operand of.  this cannot
-	// break that ordering.
+  // for anything v used to be an operand of.  this cannot
+  // break that ordering.
 	g.move_out_edges_to_new_vertex(newop_v, v);
 
 	g.remove_edges(cont, newop_v);
@@ -1085,7 +1082,7 @@ bool refine_scalar_cont_mult::operator()(vertex v, graph& g) {
 
 	std::vector<unsigned int> matches = find_matches(newop_v, g, *algorithms);
 	//std::ofstream out("lower.dot");
-	//print_graph(out, g);
+  //print_graph(out, g);
 	assert(matches.size() == 1);
 	apply_match(matches[0], newop_v, g, *algorithms);
 
@@ -1133,8 +1130,8 @@ bool refine_scalar_cont_div::operator()(vertex v, graph& g) {
 		origVparent->vertices.push_back(v);
 
 	// remove followed by add here breaks the operand ordering
-	// for anything v used to be an operand of.  this cannot
-	// break that ordering.
+  // for anything v used to be an operand of.  this cannot
+  // break that ordering.
 	g.move_out_edges_to_new_vertex(newop_v, v);
 
 	g.remove_edges(cont, newop_v);
@@ -1151,7 +1148,7 @@ bool refine_scalar_cont_div::operator()(vertex v, graph& g) {
 
 	std::vector<unsigned int> matches = find_matches(newop_v, g, *algorithms);
 	//std::ofstream out("lower.dot");
-	//print_graph(out, g);
+  //print_graph(out, g);
 	assert(matches.size() == 1);
 	apply_match(matches[0], newop_v, g, *algorithms);
 
@@ -1227,8 +1224,8 @@ bool refine_cont_cont_stride_mult::operator()(vertex v, graph& g) {
 		origVparent->vertices.push_back(v);
 
 	// remove followed by add here breaks the operand ordering
-	// for anything v used to be an operand of.  this cannot
-	// break that ordering.
+  // for anything v used to be an operand of.  this cannot
+  // break that ordering.
 	g.move_out_edges_to_new_vertex(newop_v, v);
 
 	g.remove_edges(left, newop_v);
@@ -1252,7 +1249,7 @@ bool refine_cont_cont_stride_mult::operator()(vertex v, graph& g) {
 
 	std::vector<unsigned int> matches = find_matches(newop_v, g, *algorithms);
 	//std::ofstream out("lower99.dot");
-	//print_graph(out, g);
+  //print_graph(out, g);
 	assert(matches.size() == 1);
 	apply_match(matches[0], newop_v, g, *algorithms);
 
@@ -1318,8 +1315,8 @@ bool refine_cont_cont_mult::operator()(vertex v, graph& g) {
 		origVparent->vertices.push_back(v);
 
 	// remove followed by add here breaks the operand ordering
-	// for anything v used to be an operand of.  this cannot
-	// break that ordering.
+  // for anything v used to be an operand of.  this cannot
+  // break that ordering.
 	g.move_out_edges_to_new_vertex(newop_v, v);
 
 	g.remove_edges(matrix, newop_v);
@@ -1341,7 +1338,7 @@ bool refine_cont_cont_mult::operator()(vertex v, graph& g) {
 
 	std::vector<unsigned int> matches = find_matches(newop_v, g, *algorithms);
 	//std::ofstream out("lower98.dot");
-	//print_graph(out, g);
+  //print_graph(out, g);
 	assert(matches.size() == 1);
 	apply_match(matches[0], newop_v, g, *algorithms);
 
@@ -1400,8 +1397,8 @@ bool refine_outer::operator()(vertex v, graph& g) {
 		origVparent->vertices.push_back(v);
 
 	// remove followed by add here breaks the operand ordering
-	// for anything v used to be an operand of.  this cannot
-	// break that ordering.
+  // for anything v used to be an operand of.  this cannot
+  // break that ordering.
 	g.move_out_edges_to_new_vertex(newop_v, v);
 
 	g.remove_edges(many, newop_v);
@@ -1424,7 +1421,7 @@ bool refine_outer::operator()(vertex v, graph& g) {
 
 	std::vector<unsigned int> matches = find_matches(newop_v, g, *algorithms);
 	//std::ofstream out("lower98.dot");
-	//print_graph(out, g);
+  //print_graph(out, g);
 	assert(matches.size() == 1);
 	apply_match(matches[0], newop_v, g, *algorithms);
 
@@ -1471,8 +1468,8 @@ bool refine_dot::operator()(vertex v, graph& g)
 		origVparent->vertices.push_back(v);
 
 	// remove followed by add here breaks the operand ordering
-	// for anything v used to be an operand of.  this cannot
-	// break that ordering.
+  // for anything v used to be an operand of.  this cannot
+  // break that ordering.
 	g.move_out_edges_to_new_vertex(newop_v, v);
 
 	g.remove_edges(left, newop_v);
@@ -1488,7 +1485,7 @@ bool refine_dot::operator()(vertex v, graph& g)
 
 	std::vector<unsigned int> matches = find_matches(newop_v, g, *algorithms);
 	//std::ofstream out("lower.dot");
-	//print_graph(out, g);
+  //print_graph(out, g);
 	assert(matches.size() == 1);
 	apply_match(matches[0], newop_v, g, *algorithms);
 
@@ -1512,42 +1509,42 @@ bool flip_transpose(vertex u, graph& g) {
 		}
 
 		//std::ofstream out1("lower96.dot");
-		//print_graph(out1, g);
+	//print_graph(out1, g);
 
-		//std::cerr << "flipping transpose " << u << std::endl;
+  //std::cerr << "flipping transpose " << u << std::endl;
 
-		// cases
-		// 1) ia -> trans -> get_element
-		//       ia                          ia
-		//       |                           |
-		//      trans           to      --sg-|-----
-		//  --sg_|------                   get_element (type = same)
-		//     get_element
-		//
-		// 2) ia -> trans -> get_[row|column]
-		//       ia                          ia 
-		//       |                           |
-		//      trans           to      --sg-|-----
-		//  --sg-|-------           get_[row|column] (type = child of ia)
-		//      get_[row|column]             |
-		//                                 trans (type = trans of new get)
-		//
-		// 3) ia -> trans -> partition_cast
-		//      ia                           ia  
-		//      |                            |
-		//     trans            to  partition_cast (type = trans of old cast)
-		//      |                            |
-		//  partition_cast                trans (type = same as old cast)
-		//
-		//    for example should have something like
-		//      data  R<C<S>>
-		//      trans C<R<S>>
-		//      cast  C<C<R<S>>>
-		// 
-		//    and we want
-		//      data  R<C<S>>
-		//      cast  R<R<C<S>>>
-		//      trans C<C<R<S>>>
+  // cases
+  // 1) ia -> trans -> get_element
+  //       ia                          ia
+  //       |                           |
+  //      trans           to      --sg-|-----
+  //  --sg_|------                   get_element (type = same)
+  //     get_element
+  //
+  // 2) ia -> trans -> get_[row|column]
+  //       ia                          ia 
+  //       |                           |
+  //      trans           to      --sg-|-----
+  //  --sg-|-------           get_[row|column] (type = child of ia)
+  //      get_[row|column]             |
+  //                                 trans (type = trans of new get)
+  //
+  // 3) ia -> trans -> partition_cast
+  //      ia                           ia  
+  //      |                            |
+  //     trans            to  partition_cast (type = trans of old cast)
+  //      |                            |
+  //  partition_cast                trans (type = same as old cast)
+  //
+  //    for example should have something like
+  //      data  R<C<S>>
+  //      trans C<R<S>>
+  //      cast  C<C<R<S>>>
+  // 
+  //    and we want
+  //      data  R<C<S>>
+  //      cast  R<R<C<S>>>
+  //      trans C<C<R<S>>>
 
 		vertex ia = g.inv_adj(u)[0];
 		// remove ia -> trans edge
@@ -1563,7 +1560,7 @@ bool flip_transpose(vertex u, graph& g) {
 			else if (g.info(adj).op & (get_row | get_column)) {
 
 				// create new get operation with type of child
-				// of ia.
+		// of ia.
 				vertex_info newGet = vertex_info(*(g.info(ia).t.t), 
 						get_op(*(g.info(ia).t.t), false), 
 						g.info(ia).label);
@@ -1589,14 +1586,14 @@ bool flip_transpose(vertex u, graph& g) {
 				}
 
 				// finally create edges
-				// ia -> newGet_v
+		// ia -> newGet_v
 				g.add_edge(ia, newGet_v);
 				// newGet_v -> new transpose
 				g.add_edge(newGet_v, adj);
 			}
 			else if (g.info(adj).op == partition_cast) {
 				// create new partition_cast with type of old 
-				// partition_cast.
+		// partition_cast.
 				vertex_info newCast = vertex_info(g.info(adj).t, 
 						partition_cast, 
 						g.info(ia).label);
@@ -1620,7 +1617,7 @@ bool flip_transpose(vertex u, graph& g) {
 				g.info(adj).op = trans;
 
 				// finally create edges
-				// ia -> newCast_v
+		// ia -> newCast_v
 				g.add_edge(ia, newCast_v);
 				// newCast_v -> new transpose
 				g.add_edge(newCast_v, adj);
@@ -1631,9 +1628,9 @@ bool flip_transpose(vertex u, graph& g) {
 		g.clear_vertex(u);
 
 		//std::ofstream out("lower97.dot");
-		//print_graph(out, g);
-		//out.close();
-		//exit(0);
+	//print_graph(out, g);
+  //out.close();
+  //exit(0);
 		return true;
 	}
 	return false;
@@ -1685,7 +1682,7 @@ bool flip_transpose_stride(vertex u, graph& g) {
 			sp->vertices.push_back(u);
 
 		//std::ofstream out("lower97.dot");
-		//print_graph(out, g);
+	//print_graph(out, g);
 		return true;
 	}
 	return false;
@@ -1699,10 +1696,10 @@ bool reduce_reductions(vertex u, graph& g) {
 			&& g.info(g.adj(u)[0]).op != partition_cast) {
 
 		// given (sumto0 -> temporary) -> sumto1 where sumto0 and
-		// temporary are in the same subgraph, we have left the
-		// temporary around to perform parallel reductions, 
-		// but in the sequence of reductions, sumto0 trumps the
-		// temporary which can go away.
+	// temporary are in the same subgraph, we have left the
+  // temporary around to perform parallel reductions, 
+  // but in the sequence of reductions, sumto0 trumps the
+  // temporary which can go away.
 
 		vertex adj = g.adj(u)[0];
 
@@ -1726,7 +1723,7 @@ bool remove_intermediate_temporary(vertex u, graph& g) {
 			&& g.info(g.adj(u)[0]).op != sumto) {
 
 		// We can not remove this temporary if the adjacent vertex is
-		// going to be lowered later on, breaking the above checks.
+	// going to be lowered later on, breaking the above checks.
 		for (unsigned int i = 0; i < g.adj(u).size(); ++i) {
 			vertex f = g.adj(u)[i];
 			if (g.info(f).t.k != scalar 
@@ -1735,12 +1732,12 @@ bool remove_intermediate_temporary(vertex u, graph& g) {
 		}
 
 		//std::cout << "removing intermediate temp " << u << std::endl;
-		//std::cout << "adj: " << g.adj(u)[0] << "\tinv_adj: " 
-		//        << g.inv_adj(u)[0] << "\n";
+	//std::cout << "adj: " << g.adj(u)[0] << "\tinv_adj: " 
+  //        << g.inv_adj(u)[0] << "\n";
 
-		//std::ofstream out4("lower10.dot");
-		//print_graph(out4, g);
-		//out4.close();
+  //std::ofstream out4("lower10.dot");
+  //print_graph(out4, g);
+  //out4.close();
 
 		int pred = g.inv_adj(u)[0];
 		for (vertex i = 0; i < g.adj(u).size(); ++i) {
@@ -1765,7 +1762,7 @@ bool remove_intermediate_temporary(vertex u, graph& g) {
 
 bool merge_tmp_output(vertex u, graph& g) {
 	// replace tmp -> output
-	// with    output
+  // with    output
 	if ((g.info(u).op == output) && g.inv_adj(u).size() == 1 
 			&& g.info(g.inv_adj(u)[0]).op == temporary 
 			&& g.find_parent(u) == g.find_parent(g.inv_adj(u)[0]) 
@@ -1796,8 +1793,8 @@ bool merge_tmp_output(vertex u, graph& g) {
 
 bool merge_tmp_cast_output(vertex u, graph& g) {
 	// replace tmp -> cast -> output
-	// with    cast -> output
-	// where type(newCast) = type(tmp)
+  // with    cast -> output
+  // where type(newCast) = type(tmp)
 
 	if ((g.info(u).op == output) && g.inv_adj(u).size() == 1 
 			&& g.info(g.inv_adj(u)[0]).op == partition_cast 
@@ -1824,10 +1821,10 @@ bool merge_tmp_cast_output(vertex u, graph& g) {
 			g.clear_vertex(cast);
 
 			//std::cout << "removing cast before " << u << "\n";
-			//std::ofstream out4("lower10.dot");
-			//print_graph(out4, g);
-			//out4.close();
-			//exit(0);
+	  //std::ofstream out4("lower10.dot");
+	//print_graph(out4, g);
+  //out4.close();
+  //exit(0);
 
 			return true;
 		}
@@ -1850,14 +1847,14 @@ bool merge_gets(vertex u, graph& g)
 				if (g.info(jv).op == g.info(iv).op 
 						&& (g.find_parent(jv) == g.find_parent(iv) )) {
 					//	|| (! (depends_on(g.find_parent(iv), g.find_parent(jv), g)
-					//	       || depends_on(g.find_parent(jv), g.find_parent(iv), g))))) {
+		  //	       || depends_on(g.find_parent(jv), g.find_parent(iv), g))))) {
 
 					if (jv == iv)
 						continue;
 
 					//std::cerr << "merge gets " << u << std::endl;
 
-					// copy out edges of jv to iv
+		  // copy out edges of jv to iv
 					g.move_out_edges_to_new_vertex(jv, iv);
 					g.remove_edges(u, jv);
 					g.clear_vertex(jv);
@@ -1874,30 +1871,30 @@ end:
 
 	bool merge_sumto_store(vertex u, graph& g)
 	{
-		if (g.info(u).op == sumto && g.adj(u).size() == 1 
-				&& g.find_parent(u) == g.find_parent(g.adj(u)[0])) {
-			vertex succ = g.adj(u)[0];
-			op_code op = g.info(succ).op;
-			if (op == store_row || op == store_column || op == store_element
-					|| op == store_add_element || op == store_add_row
-					|| op == store_add_column) {
-				for (unsigned int i = 0; i != g.inv_adj(u).size(); i++) {
-					g.add_edge(g.inv_adj(u)[i], succ);
-				}
-				g.info(succ).op = sumto;
+	  if (g.info(u).op == sumto && g.adj(u).size() == 1 
+			  && g.find_parent(u) == g.find_parent(g.adj(u)[0])) {
+		  vertex succ = g.adj(u)[0];
+		  op_code op = g.info(succ).op;
+		  if (op == store_row || op == store_column || op == store_element
+				  || op == store_add_element || op == store_add_row
+				  || op == store_add_column) {
+			  for (unsigned int i = 0; i != g.inv_adj(u).size(); i++) {
+				  g.add_edge(g.inv_adj(u)[i], succ);
+			  }
+			  g.info(succ).op = sumto;
 
-				g.clear_vertex(u);
-				return true;
-			}
-		}
-		return false;
-	}
+			  g.clear_vertex(u);
+			  return true;
+		  }
+	  }
+	  return false;
+  }
 
 	bool remove_cast_to_cast(vertex u, graph &g) {
 		//	  |			  |
-		//	cast0  to	cast1
-		//	  |
-		//	cast1
+	//	cast0  to	cast1
+  //	  |
+  //	cast1
 		return false;
 		if (g.info(u).op == partition_cast && g.adj(u).size() == 1) {
 			vertex adj = g.adj(u)[0];
@@ -1929,8 +1926,8 @@ end:
 			}
 
 			//std::ofstream out4("lower10.dot");
-			//print_graph(out4, g);
-			//out4.close();
+	  //print_graph(out4, g);
+	//out4.close();
 
 			return true;
 		}
@@ -1940,9 +1937,9 @@ end:
 
 	bool remove_cast_to_output(vertex u, graph &g) {
 		//    |              |
-		//   cast     to   output
-		//    |
-		//  output
+	//   cast     to   output
+  //    |
+  //  output
 		return false;
 		if (g.info(u).op == output && g.inv_adj(u).size() == 1 &&
 				g.info(g.inv_adj(u)[0]).op == partition_cast
@@ -1964,8 +1961,8 @@ end:
 			g.clear_vertex(cast);
 
 			//std::ofstream out4("lower7.dot");
-			//print_graph(out4, g);
-			//out4.close();
+	  //print_graph(out4, g);
+	//out4.close();
 			return true;
 		}
 		return false;
@@ -1973,11 +1970,11 @@ end:
 
 	bool remove_input_to_cast(vertex u, graph &g) {
 		/*
-		   input       input
-		   |			 /\
-		   cast   to 
-		   /\
-		   */
+	   input       input
+	   |			 /\
+	   cast   to 
+	   /\
+	   */
 
 		if (g.info(u).op == input && g.adj(u).size() == 1
 				&& g.info(g.adj(u)[0]).op == partition_cast) {
@@ -1986,12 +1983,12 @@ end:
 			if (g.adj(cast).size() < 1)
 				return false;
 			/*
-			   std::cout << "updating " << u << " from " << cast << "\n";
-			   std::cout << g.adj(u).size() << "\n";
-			   std::ofstream out4("lower10.dot");
-			   print_graph(out4, g);
-			   out4.close();
-			   */
+		 std::cout << "updating " << u << " from " << cast << "\n";
+		 std::cout << g.adj(u).size() << "\n";
+		 std::ofstream out4("lower10.dot");
+		 print_graph(out4, g);
+		 out4.close();
+		 */
 			g.remove_edges(u,cast);
 			g.move_out_edges_to_new_vertex(cast, u);
 
@@ -2007,10 +2004,10 @@ end:
 
 	bool merge_same_cast(vertex u, graph &g) {
 		//      d				d
-		//    /  \				|
-		//  c0   c1		to	    c
-		//  /	   \			|
-		// get	   get		   get
+	//    /  \				|
+  //  c0   c1		to	    c
+  //  /	   \			|
+  // get	   get		   get
 
 		if (g.adj(u).size() > 1) {
 
@@ -2057,87 +2054,87 @@ end:
 
 	bool move_temporary(vertex u, graph& g)
 	{
-		// move a temporary deeper into a loop nesting
-		// when the temporary does not need to be
-		// where it is -- this likely only occurs in partitioned
-		// programs and this can push a temporary to the threads
-		// 
-		// -------
-		// | pred |
-		// |     \|
-		// |      \ temporary
-		// |      /
-		// | succ |
-		// --------
-		if (g.info(u).op == temporary && g.adj(u).size() == 1 
-				&& g.inv_adj(u).size() == 1) {
+	  // move a temporary deeper into a loop nesting
+	// when the temporary does not need to be
+  // where it is -- this likely only occurs in partitioned
+  // programs and this can push a temporary to the threads
+  // 
+  // -------
+  // | pred |
+  // |     \|
+  // |      \ temporary
+  // |      /
+  // | succ |
+  // --------
+	  if (g.info(u).op == temporary && g.adj(u).size() == 1 
+			  && g.inv_adj(u).size() == 1) {
 
-			vertex pred = g.inv_adj(u)[0];
-			vertex succ = g.adj(u)[0];
+		  vertex pred = g.inv_adj(u)[0];
+		  vertex succ = g.adj(u)[0];
 
-			if (g.info(pred).t.k != g.info(succ).t.k 
-					|| g.info(pred).t.height != g.info(succ).t.height)
-				return false;
+		  if (g.info(pred).t.k != g.info(succ).t.k 
+				  || g.info(pred).t.height != g.info(succ).t.height)
+			  return false;
 
-			if (g.info(succ).op != get_row && g.info(succ).op != get_column
-					&& g.info(succ).op != get_row_from_column 
-					&& g.info(succ).op != get_column_from_row
-					&& g.info(succ).op != get_element)
-				return false;
+		  if (g.info(succ).op != get_row && g.info(succ).op != get_column
+				  && g.info(succ).op != get_row_from_column 
+				  && g.info(succ).op != get_column_from_row
+				  && g.info(succ).op != get_element)
+			  return false;
 
-			if (g.info(pred).op != store_row && g.info(pred).op != store_column
-					&& g.info(pred).op != store_add_column
-					&& g.info(pred).op != store_add_row
-					&& g.info(pred).op != store_element
-					&& g.info(pred).op != store_add_element)
-				return false;
+		  if (g.info(pred).op != store_row && g.info(pred).op != store_column
+				  && g.info(pred).op != store_add_column
+				  && g.info(pred).op != store_add_row
+				  && g.info(pred).op != store_element
+				  && g.info(pred).op != store_add_element)
+			  return false;
 
-			if (g.find_parent(pred) == g.find_parent(succ)) {
-				subgraph *up = g.find_parent(u);
-				subgraph *pp = g.find_parent(pred);
+		  if (g.find_parent(pred) == g.find_parent(succ)) {
+			  subgraph *up = g.find_parent(u);
+			  subgraph *pp = g.find_parent(pred);
 
-				if (pp->parent == up) {
-					g.info(pred).op = temporary;
+			  if (pp->parent == up) {
+				  g.info(pred).op = temporary;
 
-					// we have just reduced the overall size of the contianer
-					// update the container
-					// this needs to be propogated up and down the get and
-					// store chain
-					propogate_dimension_change(g,pred);
+				  // we have just reduced the overall size of the contianer
+		  // update the container
+	  // this needs to be propogated up and down the get and
+	// store chain
+				  propogate_dimension_change(g,pred);
 
-					for (unsigned int i = 0; i < g.adj(succ).size(); ++i)
-						g.add_edge(pred,g.adj(succ)[i]);
+				  for (unsigned int i = 0; i < g.adj(succ).size(); ++i)
+					  g.add_edge(pred,g.adj(succ)[i]);
 
-					g.clear_vertex(u);
-					g.clear_vertex(succ);
+				  g.clear_vertex(u);
+				  g.clear_vertex(succ);
 
-					//std::cout << prnt_detail(&g.info(pred).t) << "\n";
+				  //std::cout << prnt_detail(&g.info(pred).t) << "\n";
 
-					return true;
-				}
-			}
-		}
-		return false;
-	}
+				  return true;
+			  }
+		  }
+	  }
+	  return false;
+  }
 
 	bool straighten_top_level_scalar_ops(vertex u, graph& g)
 	{
-		// given scalar_op in graph level 0
-		// if op has an output|temporaty adjacent to it, create single edege to
-		// output vertex and move remaining op edges to output.
+	  // given scalar_op in graph level 0
+	// if op has an output|temporaty adjacent to it, create single edege to
+  // output vertex and move remaining op edges to output.
 
-		if ((g.info(u).op & OP_ANY_ARITHMATIC) && (g.find_parent(u) == NULL)) {
-			for (vertex v = 0; v < g.adj(u).size(); ++v) {
-				vertex n = g.adj(u)[v];
-				if (g.info(n).op & (output | temporary)) {
-					g.remove_edges(u,n);
-					g.move_out_edges_to_new_vertex(u, n);
-					g.add_edge(u,n);
-				}
-			}
+	  if ((g.info(u).op & OP_ANY_ARITHMATIC) && (g.find_parent(u) == NULL)) {
+		  for (vertex v = 0; v < g.adj(u).size(); ++v) {
+			  vertex n = g.adj(u)[v];
+			  if (g.info(n).op & (output | temporary)) {
+				  g.remove_edges(u,n);
+				  g.move_out_edges_to_new_vertex(u, n);
+				  g.add_edge(u,n);
+			  }
+		  }
 
-		}
-		return false;
-	}
+	  }
+	  return false;
+  }
 	/////////////////////////////////////// END REWRITERS /////////////////////////////
 

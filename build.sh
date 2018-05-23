@@ -1,5 +1,5 @@
 #!/bin/bash
-make clean
+#make clean
 cd src/
 bison -d syntax.y
 flex syntax.l
@@ -8,6 +8,6 @@ mv syntax.tab.c syntax.tab.cpp
 mv syntax.tab.h syntax.tab.hpp
 cd ../
 autoreconf --install
-./configure --prefix=$(pwd) CXX='clang++' CXXFLAGS='-g -O0 -std=c++11 -stdlib=libc++'
+./configure --prefix=$(pwd) CXX='g++'
 make -j2
 make install

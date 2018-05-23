@@ -6,9 +6,10 @@
 #include <map>
 #include <set>
 #include <iostream>
-#include "boost/function.hpp"
+//#include "boost/function.hpp"
 #include "boost/lexical_cast.hpp"
 #include <utility>
+#include <functional>
 
 using std::vector;
 using std::map;
@@ -29,7 +30,7 @@ using std::set;
 
 struct dim_info {
 	dim_info() : dim("?"), step("1"), base_rows("?"), base_cols("?"),
-		lead_dim("?") {}
+	lead_dim("?") {}
 
 	dim_info(string br, string bc, string dim) : dim(dim), step("1"),
 	base_rows(br), base_cols(bc), lead_dim("1") {}
@@ -53,197 +54,197 @@ struct dim_info {
 
 struct type {
 	//for compiler
-	// std::pair will not work without a type().  stupid.  this
-	// opens up the potential for format erros all over the place
-	// allowing this.  ideally the minimun would be type(storage).
+  // std::pair will not work without a type().  stupid.  this
+  // opens up the potential for format erros all over the place
+  // allowing this.  ideally the minimun would be type(storage).
 	type() : k(unknown), s(any), uplo(uplo_null), diag(diag_null), dim(), t(0),
-		height(0) {}
+	height(0) {}
 
 	type(storage s) : k(unknown), s(s), uplo(uplo_null), diag(diag_null),
-		dim(), t(0), height(0) {}
+	dim(), t(0), height(0) {}
 
 	type(kind k, dim_info d, storage s) : k(k), s(s), uplo(uplo_null),
-		diag(diag_null), dim(d), t(0), height(0) { }
+	diag(diag_null), dim(d), t(0), height(0) { }
 
 	type(kind k, dim_info d, storage s, int height) : k(k), s(s),
-		uplo(uplo_null), diag(diag_null), dim(d), t(0), height(height) { }
-	
+	uplo(uplo_null), diag(diag_null), dim(d), t(0), height(height) { }
+
 	type(kind k, dim_info d, storage s, int height, uplo_t uplo, diag_t diag) :
 		k(k), s(s), uplo(uplo), diag(diag), dim(d), t(0), height(height) { }
 
 	//for parsing only
-	//matrix & vector
+  //matrix & vector
 	type(string data, std::map<std::string,std::string> &attrib_list) :
 		dim(), height(0) { 
 
-		// supported attrubutes
-		// orientation = [row, column]; defaults to column
-		// format = [general, triangular]; defaults to general
-		// uplo = [upper, lower]; must be specified when triangular is specified.
-		//                  can only be specified when triangular is present
+			// supported attrubutes
+	  // orientation = [row, column]; defaults to column
+	// format = [general, triangular]; defaults to general
+  // uplo = [upper, lower]; must be specified when triangular is specified.
+  //                  can only be specified when triangular is present
 
-		if (data.compare("matrix") != 0 && data.compare("vector") != 0 && data.compare("tensor") != 0) {
-			std::cout << "ERROR: syntax.hpp: type() constructor: expecting matrix\n";
-			exit(-1);
-		}
+			if (data.compare("matrix") != 0 && data.compare("vector") != 0 && data.compare("tensor") != 0) {
+				std::cout << "ERROR: syntax.hpp: type() constructor: expecting matrix\n";
+				exit(-1);
+			}
 
-		// common attributes 
-		string orien = "column";
-		string uplo_s = "";
-		string diag_s = "";
-		string format = "general";
-		string container = "";
-		s = general;
-
-		// iterate over attribute list and set corresponding values.
-		map<string,string>::iterator itr = attrib_list.begin();
-		for (; itr != attrib_list.end(); ++itr) {
-
-			if (itr->first.compare("orientation") == 0) {
-				orien = itr->second;
-			}
-			else if (itr->first.compare("format") == 0) {
-				format = itr->second;
-			}
-			else if (itr->first.compare("uplo") == 0) {
-				uplo_s = itr->second;
-			}
-			else if (itr->first.compare("diag") == 0) {
-				diag_s = itr->second;
-			} else if (itr->first.compare("container") == 0) {
-				container = itr->second;
-			}
-			else {
-				std::cout << "The attribute pair " << itr->first << ", "
-					<< itr->second << " is not currently supported\n";
-				exit(1);
-			}
-		}
-
-		// perform checks on attributes.
-		if (format.compare("general") == 0) {
-			// general
+			// common attributes 
+			string orien = "column";
+			string uplo_s = "";
+			string diag_s = "";
+			string format = "general";
+			string container = "";
 			s = general;
-			// uplo cannot be set
-			if (uplo_s.compare("") != 0) {
-				std::cout << "error: uplo cannot be set for a general matrix\n";
+
+			// iterate over attribute list and set corresponding values.
+			map<string,string>::iterator itr = attrib_list.begin();
+			for (; itr != attrib_list.end(); ++itr) {
+
+				if (itr->first.compare("orientation") == 0) {
+					orien = itr->second;
+				}
+				else if (itr->first.compare("format") == 0) {
+					format = itr->second;
+				}
+				else if (itr->first.compare("uplo") == 0) {
+					uplo_s = itr->second;
+				}
+				else if (itr->first.compare("diag") == 0) {
+					diag_s = itr->second;
+				} else if (itr->first.compare("container") == 0) {
+					container = itr->second;
+				}
+				else {
+					std::cout << "The attribute pair " << itr->first << ", "
+						<< itr->second << " is not currently supported\n";
+					exit(1);
+				}
+			}
+
+			// perform checks on attributes.
+			if (format.compare("general") == 0) {
+				// general
+				s = general;
+				// uplo cannot be set
+				if (uplo_s.compare("") != 0) {
+					std::cout << "error: uplo cannot be set for a general matrix\n";
+					exit(1);
+				}
+				// diag cannot be set
+				if (diag_s.compare("") != 0) {
+					std::cout << "error: diag cannot be set for a general matrix\n";
+					exit(1);
+				}
+				uplo = uplo_null;
+				diag = diag_null;
+			}
+			else if (format.compare("triangular") == 0) {
+				// triangular
+				s = triangular;
+				// uplo must be set
+				if (uplo_s.compare("") == 0) {
+					std::cout << "error: uplo must be set for a triangular matrix\n";
+					exit(1);
+				}
+				// diag must be set
+				if (diag_s.compare("") == 0) {
+					std::cout << "error: diag must be set for a triangular matrix\n";
+					exit(1);
+				}
+				if (uplo_s.compare("upper") == 0)
+					uplo = upper;
+				else
+					uplo = lower;
+				if (diag_s.compare("unit") == 0)
+					diag = unit;
+				else
+					diag = nonunit;
+			}
+			else {
+				std::cout << "parse error: unsuported format: " << format << "\n";
 				exit(1);
 			}
-			// diag cannot be set
-			if (diag_s.compare("") != 0) {
-				std::cout << "error: diag cannot be set for a general matrix\n";
-				exit(1);
-			}
-			uplo = uplo_null;
-			diag = diag_null;
-		}
-		else if (format.compare("triangular") == 0) {
-			// triangular
-			s = triangular;
-			// uplo must be set
-			if (uplo_s.compare("") == 0) {
-				std::cout << "error: uplo must be set for a triangular matrix\n";
-				exit(1);
-			}
-			// diag must be set
-			if (diag_s.compare("") == 0) {
-				std::cout << "error: diag must be set for a triangular matrix\n";
-				exit(1);
-			}
-			if (uplo_s.compare("upper") == 0)
-				uplo = upper;
-			else
-				uplo = lower;
-			if (diag_s.compare("unit") == 0)
-				diag = unit;
-			else
-				diag = nonunit;
-		}
-		else {
-			std::cout << "parse error: unsuported format: " << format << "\n";
-			exit(1);
-		}
 
 
-		// build type based on attributes.
-		// tensor type: takes a list like "RCCRC"
-		// builds recursive type appropriately
-		if (data.compare("tensor") == 0) {
-			int sub_h = 0;
-			type *sub_t = new type(scalar, dim_info("???","???","1"), general, 0,
+			// build type based on attributes.
+	  // tensor type: takes a list like "RCCRC"
+	// builds recursive type appropriately
+			if (data.compare("tensor") == 0) {
+				int sub_h = 0;
+				type *sub_t = new type(scalar, dim_info("???","???","1"), general, 0,
+						uplo_null, diag_null);
+				// stopping before outermost container
+				for (int i = container.size() -1 ; i > 0; --i) {
+					++sub_h;
+					kind subk = container[i] == 'R' ? row : column;
+					type *outer_t = new type(subk, dim_info(), general, sub_h, uplo_null,
+							diag_null);
+					outer_t->t = sub_t;
+					sub_t = outer_t;
+				}
+				// Now handle myself as outermost container
+				k = (container[0] == 'R' ? row : column);
+				t = sub_t;
+				height = sub_h + 1;
+			}
+			// matrix
+			else if (data.compare("matrix") == 0) {	
+				if (orien.compare("column") == 0) {
+					k = row;
+					height = 2;
+
+					//column
+					type *clm = new type(column, dim_info(), s, 1, uplo, diag);
+					t = clm; 
+
+					//scalar
+					type *scl = new type(scalar, dim_info("???","???","1"), s, 0,
 							uplo_null, diag_null);
-			// stopping before outermost container
-			for (int i = container.size() -1 ; i > 0; --i) {
-				++sub_h;
-				kind subk = container[i] == 'R' ? row : column;
-				type *outer_t = new type(subk, dim_info(), general, sub_h, uplo_null,
-						diag_null);
-				outer_t->t = sub_t;
-				sub_t = outer_t;
+					clm->t = scl;			
+				}
+				else if (orien.compare("row") == 0) {
+					k = column;
+					height = 2;
+
+					//row
+					type *rw = new type(row, dim_info(), s, 1, uplo, diag);
+					t = rw; 
+
+					//scalar
+					type *scl = new type(scalar, dim_info("???","???","1"), s, 0,
+							uplo_null, diag_null);
+					rw->t = scl;
+				}
+				else {
+					std::cout << "ERROR: syntax.hpp: type structure constructor: unknown orientation\n";
+				}
 			}
-			// Now handle myself as outermost container
-			k = (container[0] == 'R' ? row : column);
-			t = sub_t;
-			height = sub_h + 1;
-		}
-		// matrix
-		else if (data.compare("matrix") == 0) {	
-			if (orien.compare("column") == 0) {
-				k = row;
-				height = 2;
-
-				//column
-				type *clm = new type(column, dim_info(), s, 1, uplo, diag);
-				t = clm; 
-
-				//scalar
-				type *scl = new type(scalar, dim_info("???","???","1"), s, 0,
-						uplo_null, diag_null);
-				clm->t = scl;			
-			}
-			else if (orien.compare("row") == 0) {
-				k = column;
-				height = 2;
-
-				//row
-				type *rw = new type(row, dim_info(), s, 1, uplo, diag);
-				t = rw; 
-
-				//scalar
-				type *scl = new type(scalar, dim_info("???","???","1"), s, 0,
-						uplo_null, diag_null);
-				rw->t = scl;
-			}
+			//vector
 			else {
-				std::cout << "ERROR: syntax.hpp: type structure constructor: unknown orientation\n";
+				if (orien.compare("row") == 0) {
+					k = row;
+					height = 1;
+					dim.base_rows = "1";
+
+					//scalar
+					type *scl = new type(scalar, dim_info("1","???","1"), general, 0);
+					t = scl;			
+				}
+				else if (orien.compare("column") == 0) {
+					k = column;
+					height = 1;
+					dim.base_cols = "1";
+
+					//scalar
+					type *scl = new type(scalar, dim_info("???","1","1"), general, 0);
+					t = scl;
+				}
+				else {
+					std::cout << "ERROR: syntax.hpp: type structure constructor: unknown orientation\n";
+				}
+
 			}
 		}
-		//vector
-		else {
-			if (orien.compare("row") == 0) {
-				k = row;
-				height = 1;
-				dim.base_rows = "1";
-
-				//scalar
-				type *scl = new type(scalar, dim_info("1","???","1"), general, 0);
-				t = scl;			
-			}
-			else if (orien.compare("column") == 0) {
-				k = column;
-				height = 1;
-				dim.base_cols = "1";
-
-				//scalar
-				type *scl = new type(scalar, dim_info("???","1","1"), general, 0);
-				t = scl;
-			}
-			else {
-				std::cout << "ERROR: syntax.hpp: type structure constructor: unknown orientation\n";
-			}
-
-		}
-	}
 
 	//scalar
 	type(kind k) : k(k), s(general), uplo(uplo_null), diag(diag_null), dim("1","1","1","1","1"), t(0), height(0) { }
@@ -252,12 +253,12 @@ struct type {
 	type(const type &ot) : k(ot.k), s(ot.s), uplo(ot.uplo), diag(ot.diag), dim(ot.dim), height(ot.height) 
 	{
 
-		if (ot.t) {
-			t = new type(*(ot.t));
-		}
-		else
-			t = 0;
-	}	
+	  if (ot.t) {
+		  t = new type(*(ot.t));
+	  }
+	  else
+		  t = 0;
+  }	
 
 	// assignment operator
 	type& operator=(const type &ot) {
@@ -297,8 +298,8 @@ struct type {
 
 
 	// util functions //
-	//
-	
+  //
+
 	type *get_highest_row() {
 		if (this->k == scalar)
 			return this;
@@ -343,9 +344,9 @@ struct type {
 
 	int whichPartition(string dim, kind k) {
 		// a container above will call this to
-		// find which container below is its matching
-		// partition and return the height of that
-		// partition.
+	// find which container below is its matching
+  // partition and return the height of that
+  // partition.
 		if (dim.compare("1") == 0)
 			return -1;
 
@@ -430,16 +431,16 @@ struct vertex_info
 	vertex_info() : t(type(unknown)), eval(defer), trivial(true) { }
 
 	vertex_info(op_code op) : t(type(unknown)), op(op), eval(defer),
-		trivial(true) { }
-	
+	trivial(true) { }
+
 	vertex_info(op_code op, string label) : t(type(unknown)), op(op),
-		label(label), eval(defer), trivial(true) { }
+	label(label), eval(defer), trivial(true) { }
 
 	vertex_info(const type &t, op_code op, string label) : t(t), op(op),
-		label(label), eval(defer), trivial(true) { }
+	label(label), eval(defer), trivial(true) { }
 
 	vertex_info(const type &t, op_code op, string label, double v) : t(t),
-		op(op), val(v), label(label), eval(defer), trivial(true) { }
+	op(op), val(v), label(label), eval(defer), trivial(true) { }
 
 	type t;
 	op_code op;
@@ -454,15 +455,15 @@ struct vertex_info
 };
 
 typedef Graph<vertex_info> graph;
-typedef boost::function<bool(vertex,graph&)> rewrite_fun;
-typedef boost::function<bool(vertex,graph&,bool)> partition_fun;
-typedef boost::function<subgraph_id(vertex,graph&,std::pair<subgraph_id,subgraph_id >&)> 
-	optim_fun;
-typedef boost::function<set<pair<subgraph_id,subgraph_id > >
-	(vertex,graph&,std::set<subgraph_id>&)> optim_fun_chk;
-typedef boost::function<type(vertex u, vector<vertex>, graph&)> return_type_fun;
-typedef boost::function<vector<param_access>(vector<vertex>, vertex u, graph&)> param_access_fun;
-typedef boost::function<bool(vertex, graph &)> constraint_fun;
+typedef std::function<bool(vertex,graph&)> rewrite_fun;
+typedef std::function<bool(vertex,graph&,bool)> partition_fun;
+typedef std::function<subgraph_id(vertex,graph&,std::pair<subgraph_id,subgraph_id >&)> 
+optim_fun;
+typedef std::function<set<pair<subgraph_id,subgraph_id > >
+(vertex,graph&,std::set<subgraph_id>&)> optim_fun_chk;
+typedef std::function<type(vertex u, vector<vertex>, graph&)> return_type_fun;
+typedef std::function<vector<param_access>(vector<vertex>, vertex u, graph&)> param_access_fun;
+typedef std::function<bool(vertex, graph &)> constraint_fun;
 
 struct algo {
 	algo(op_code op, return_type_fun rt, computation_kind comp, param_access_fun pa, type arg, 
