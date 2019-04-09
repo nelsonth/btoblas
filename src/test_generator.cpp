@@ -1148,7 +1148,10 @@ void runCorrectnessTest(std::string &path, std::string &fileName,
 	char *p = getcwd(cwd, 1024);
 	if (p == NULL)
 		std::cout << "Failed to get current working directory\n";
-	chdir(path.c_str());
+  if (chdir(path.c_str())) {
+		std::cout << "Failed to chdir" << std::endl;
+    exit(-1);
+  }
 	
 	
 	// run all test present
@@ -1223,7 +1226,10 @@ void runCorrectnessTest(std::string &path, std::string &fileName,
         }	
 	}
 	
-	chdir(cwd);
+	if (chdir(cwd)) {
+    std::cout << "Error chdir" << std::endl;
+    exit(0);
+  }
 }
 
 #define GLBL_SIZE 4000
@@ -1486,7 +1492,10 @@ int runEmpiricalTest(std::string &path, std::string &fileName,
 	char *p = getcwd(cwd, 1024);
 	if (p == NULL)
 		std::cout << "Failed to get current working directory\n";
-	chdir(path.c_str());
+	if (chdir(path.c_str())) {
+    std::cout << "ERROR in chdir" << std::endl;
+    exit(0);
+  }
 
 	
 	// run all test present and find the best performing
@@ -1606,7 +1615,10 @@ int runEmpiricalTest(std::string &path, std::string &fileName,
 		(*itr)->add_model(empirical,newData);
 	}
 	
-	chdir(cwd);
+	if (chdir(cwd)) {
+    std::cout << "ERROR in chdir" << std::endl;
+    exit(0);
+  }
 	return bestVersion;
 }
 
